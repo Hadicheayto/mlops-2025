@@ -106,3 +106,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+# python scripts/preprocess.py --train_path data/titanic/train.csv --test_path data/titanic/test.csv --output_train data/titanic/processed/train_processed.csv --output_test data/titanic/processed/test_processed.csv
