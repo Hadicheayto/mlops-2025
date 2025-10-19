@@ -6,17 +6,11 @@ from pathlib import Path
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.pipeline import Pipeline
 
-# -------------------------------
-# Load data
-# -------------------------------
 def load_train_split(train_dir):
     X_train = pd.read_csv(Path(train_dir) / "X_train.csv")
-    y_train = pd.read_csv(Path(train_dir) / "y_train.csv").squeeze()  # squeeze to get Series
+    y_train = pd.read_csv(Path(train_dir) / "y_train.csv").squeeze()  
     return X_train, y_train
 
-# -------------------------------
-# Load transformers
-# -------------------------------
 def load_transformers(transformer_dir):
     num_cat_path = Path(transformer_dir) / "num_cat_transformer.pkl"
     bins_path = Path(transformer_dir) / "bins_transformer.pkl"
@@ -26,9 +20,6 @@ def load_transformers(transformer_dir):
         bins_trans = pickle.load(f)
     return num_cat_trans, bins_trans
 
-# -------------------------------
-# Create pipeline
-# -------------------------------
 def create_pipeline(algo, num_cat_trans, bins_trans):
     return Pipeline([
         ('num_cat_transformation', num_cat_trans),
@@ -36,18 +27,12 @@ def create_pipeline(algo, num_cat_trans, bins_trans):
         ('classifier', algo)
     ])
 
-# -------------------------------
-# Save pipeline
-# -------------------------------
 def save_pipeline(pipeline, output_path):
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'wb') as f:
         pickle.dump(pipeline, f)
     print(f"Pipeline saved to: {output_path}")
 
-# -------------------------------
-# Main
-# -------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Train Titanic model with saved transformers")
     parser.add_argument("--train_dir", type=str, required=True, help="Directory where training split CSVs are saved")

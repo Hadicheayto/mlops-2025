@@ -18,7 +18,7 @@ def load_model(model_path: Path):
 def load_eval_data(X_path: Path, y_path: Path):
     """Load evaluation features and labels from separate CSV files."""
     X = pd.read_csv(X_path)
-    y = pd.read_csv(y_path).squeeze()  # convert single-column DF to Series
+    y = pd.read_csv(y_path).squeeze()  
     return X, y
 
 
@@ -57,7 +57,7 @@ def main():
     print("Running evaluation...")
     metrics = evaluate(model, X_eval, y_eval)
 
-    # Print summary
+ 
     print(f"\nAccuracy: {metrics['accuracy']:.4f}\n")
     print("Classification report:\n")
     print(classification_report(y_eval, model.predict(X_eval)))
@@ -66,7 +66,7 @@ def main():
     print(pd.DataFrame(metrics["confusion_matrix"], index=["true_0", "true_1"], columns=["pred_0", "pred_1"]))
     print(f"\nNumber of evaluation samples: {metrics['n_samples']}")
 
-    # Optionally save metrics as JSON
+
     if args.output_json:
         out_path = Path(args.output_json)
         out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-# feature.py
+
 import pandas as pd
 import argparse
 from pathlib import Path
@@ -6,10 +6,6 @@ import pickle
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, MinMaxScaler, KBinsDiscretizer
 from sklearn.model_selection import train_test_split
-
-# -------------------------------
-# Feature Creation Functions
-# -------------------------------
 
 def extract_title(df):
     df['Title'] = df['Name'].str.split(", ", expand=True)[1].str.split(".", expand=True)[0]
@@ -37,9 +33,6 @@ def drop_unused_columns(df):
     print(df.head())
     return df
 
-# -------------------------------
-# Feature Transformation Pipelines
-# -------------------------------
 
 def build_feature_pipelines():
     num_cat_transformation =ColumnTransformer([
@@ -65,19 +58,12 @@ def fit_and_save_transformers(X_train, num_cat_transformation, bins, output_dir=
         pickle.dump(bins, f)
     print(f"Transformers saved to '{output_dir}' directory.")
 
-# -------------------------------
-# Master function to apply all features
-# -------------------------------
-
 def apply_feature_engineering(df):
     df = extract_title(df)
     df = create_family_size(df)
     df = drop_unused_columns(df)
     return df
 
-# -------------------------------
-# New: split train/eval
-# -------------------------------
 
 def split_train_eval(df, eval_dir="data/eval", test_size=0.2, random_state=42, train_dir="data/train"):
     X = df.drop(columns=['Survived'])
@@ -86,28 +72,23 @@ def split_train_eval(df, eval_dir="data/eval", test_size=0.2, random_state=42, t
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
 
-    # Save evaluation set
     eval_dir = Path(eval_dir)
     eval_dir.mkdir(parents=True, exist_ok=True)
     X_eval.to_csv(eval_dir/"X_eval.csv", index=False)
     y_eval.to_csv(eval_dir/"y_eval.csv", index=False)
     print(f"Evaluation data saved to: {eval_dir/'X_eval.csv'} and {eval_dir/'y_eval.csv'}")
 
-    # Save training split
     train_dir = Path(train_dir)
     train_dir.mkdir(parents=True, exist_ok=True)
     X_train.to_csv(train_dir/"X_train.csv", index=False)
     y_train.to_csv(train_dir/"y_train.csv", index=False)
     print(f"Training split saved to: {train_dir/'X_train.csv'} and {train_dir/'y_train.csv'}")
 
-    # Merge X_train and y_train to return as full DataFrame
     train_df = X_train.copy()
     train_df['Survived'] = y_train
     return train_df
 
-# -------------------------------
-# Main function
-# -------------------------------
+
 
 def main():
     parser = argparse.ArgumentParser(description="Apply feature engineering to Titanic dataset")
