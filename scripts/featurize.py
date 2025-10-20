@@ -1,4 +1,3 @@
-
 import pandas as pd
 import argparse
 from pathlib import Path
@@ -27,6 +26,15 @@ def create_family_size(df):
             return "Large"
     df['Family_size'] = df['Family_size'].apply(family_size_bin)
     return df
+
+# i added this new feature
+def create_group_size(df):
+    
+    if 'Ticket' in df.columns:
+        df['GroupSize'] = df.groupby('Ticket')['Ticket'].transform('count')
+    else:
+        df['GroupSize'] = 1
+
 
 def drop_unused_columns(df):
     df.drop(columns=['Name','Parch','SibSp','Ticket','PassengerId'], inplace=True)
@@ -139,6 +147,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# python scripts/featurize.py --train_path data/processed/train_processed.csv --test_path data/processed/test_processed.csv --output_train data/featurized/train_features.csv --output_test data/featurized/test_features.csv --transformer_dir data/transformers --eval_dir data/eval --train_dir data/train --test_size 0.2
