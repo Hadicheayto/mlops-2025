@@ -1,6 +1,7 @@
 
 # train.py
 import argparse
+from src.my_package.models.random_forest_model import RandomForestModel
 import pandas as pd
 from pathlib import Path
 from src.my_package.models.logistic_model import LogisticRegressionModel  # import your model class
@@ -45,7 +46,7 @@ def main():
     num_cat_trans, bins_trans = load_transformers(args.transformer_dir)
 
     print("Training model...")
-    model = LogisticRegressionModel(num_cat_trans, bins_trans, args.output_model)
+    model = RandomForestModel(num_cat_trans, bins_trans, args.output_model)
     model.train(X_train, y_train)
 
 
@@ -55,4 +56,4 @@ if __name__ == "__main__":
 
 
 
-#python -m scripts.train --train_dir data/train --transformer_dir data/transformers --output_model data/models/pipeline_model.pkl
+# python -m scripts.train --train_dir data/train --transformer_dir data/transformers --output_model data/models/pipeline_model.pkl
