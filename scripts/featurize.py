@@ -1,101 +1,15 @@
-import pandas as pd
+# scripts/featurize.py
 import argparse
 from pathlib import Path
 import pickle
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, MinMaxScaler, KBinsDiscretizer
+
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
-def extract_title(df):
-    df['Title'] = df['Name'].str.split(", ", expand=True)[1].str.split(".", expand=True)[0]
-    df['Title'] = df['Title'].replace(
-        ['Lady', 'the Countess','Capt', 'Col','Don', 'Dr', 'Major', 'Rev', 
-         'Sir', 'Jonkheer', 'Dona'], 'Rare')
-    df['Title'] = df['Title'].replace(['Mlle','Ms'], 'Miss')
-    df['Title'] = df['Title'].replace('Mme', 'Mrs')
-    return df
-
-def create_family_size(df):
-    df['Family_size'] = df['SibSp'] + df['Parch'] + 1
-    def family_size_bin(number):
-        if number == 1:
-            return "Alone"
-        elif number < 5:
-            return "Small"
-        else:
-            return "Large"
-    df['Family_size'] = df['Family_size'].apply(family_size_bin)
-    return df
-
-# i added this new feature
-def create_group_size(df):
-    
-    if 'Ticket' in df.columns:
-        df['GroupSize'] = df.groupby('Ticket')['Ticket'].transform('count')
-    else:
-        df['GroupSize'] = 1
-
-
-def drop_unused_columns(df):
-    df.drop(columns=['Name','Parch','SibSp','Ticket','PassengerId'], inplace=True)
-    print(df.head())
-    return df
-
-
-def build_feature_pipelines():
-    num_cat_transformation =ColumnTransformer([
-        ('scaling',MinMaxScaler(),[0,2]),
-        ('onehotencolding1',OneHotEncoder(),[1,3]),
-        ('ordinal',OrdinalEncoder(),[4]),
-        ('onehotencolding2',OneHotEncoder(),[5,6])
-    ],remainder='passthrough')
-
-    bins = ColumnTransformer([
-        ('kbins', KBinsDiscretizer(n_bins=15, encode='ordinal', strategy='quantile'), [0, 2])
-    ], remainder='passthrough')
-
-    return num_cat_transformation, bins
-
-def fit_and_save_transformers(X_train, num_cat_transformation, bins, output_dir="transformers"):
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-    num_cat_transformation.fit(X_train)
-    bins.fit(X_train)
-    with open(Path(output_dir)/"num_cat_transformer.pkl", "wb") as f:
-        pickle.dump(num_cat_transformation, f)
-    with open(Path(output_dir)/"bins_transformer.pkl", "wb") as f:
-        pickle.dump(bins, f)
-    print(f"Transformers saved to '{output_dir}' directory.")
-
-def apply_feature_engineering(df):
-    df = extract_title(df)
-    df = create_family_size(df)
-    df = drop_unused_columns(df)
-    return df
-
-
-def split_train_eval(df, eval_dir="data/eval", test_size=0.2, random_state=42, train_dir="data/train"):
-    X = df.drop(columns=['Survived'])
-    y = df['Survived']
-    X_train, X_eval, y_train, y_eval = train_test_split(
-        X, y, test_size=test_size, random_state=random_state, stratify=y
-    )
-
-    eval_dir = Path(eval_dir)
-    eval_dir.mkdir(parents=True, exist_ok=True)
-    X_eval.to_csv(eval_dir/"X_eval.csv", index=False)
-    y_eval.to_csv(eval_dir/"y_eval.csv", index=False)
-    print(f"Evaluation data saved to: {eval_dir/'X_eval.csv'} and {eval_dir/'y_eval.csv'}")
-
-    train_dir = Path(train_dir)
-    train_dir.mkdir(parents=True, exist_ok=True)
-    X_train.to_csv(train_dir/"X_train.csv", index=False)
-    y_train.to_csv(train_dir/"y_train.csv", index=False)
-    print(f"Training split saved to: {train_dir/'X_train.csv'} and {train_dir/'y_train.csv'}")
-
-    train_df = X_train.copy()
-    train_df['Survived'] = y_train
-    return train_df
-
+# use the package classes
+from my_package.preprocessing.dataloader import DataLoader
+from my_package.features.features_computer import FeaturesComputer
+from my_package.features.transformers_manager import TransformersManager
 
 
 def main():
@@ -110,40 +24,73 @@ def main():
     parser.add_argument("--test_size", type=float, default=0.2, help="Proportion of train data for evaluation")
     args = parser.parse_args()
 
+    # ensure output dirs exist
     Path(args.output_train).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output_test).parent.mkdir(parents=True, exist_ok=True)
     Path(args.transformer_dir).mkdir(parents=True, exist_ok=True)
     Path(args.eval_dir).mkdir(parents=True, exist_ok=True)
     Path(args.train_dir).mkdir(parents=True, exist_ok=True)
 
+    # 1) Load raw data via DataLoader (use the class!)
     print("Loading data...")
-    train = pd.read_csv(args.train_path)
-    test = pd.read_csv(args.test_path)
+    loader = DataLoader()
+    train, test = loader.load(args.train_path, args.test_path)
     print(f"Loaded train: {train.shape}, test: {test.shape}")
 
+    # 2) Compute features using FeaturesComputer
     print("Applying feature engineering to train data...")
-    train_features = apply_feature_engineering(train)
+    fc = FeaturesComputer()
+    train_features = fc.compute(train)
 
+    # 3) Split train_features into X_train/X_eval/y_train/y_eval (stratified)
     print("Splitting train data into training and evaluation sets...")
-    train_features = split_train_eval(
-        train_features, eval_dir=args.eval_dir, test_size=args.test_size, train_dir=args.train_dir
+    X = train_features.drop(columns=['Survived'])
+    y = train_features['Survived']
+    X_train, X_eval, y_train, y_eval = train_test_split(
+        X, y, test_size=args.test_size, random_state=42, stratify=y
     )
 
-    print("Applying feature engineering to test data...")
-    test_features = apply_feature_engineering(test)
+    # save eval split
+    eval_dir = Path(args.eval_dir)
+    eval_dir.mkdir(parents=True, exist_ok=True)
+    X_eval.to_csv(eval_dir / "X_eval.csv", index=False)
+    y_eval.to_csv(eval_dir / "y_eval.csv", index=False)
+    print(f"Evaluation data saved to: {eval_dir/'X_eval.csv'} and {eval_dir/'y_eval.csv'}")
 
-    print("Saving feature-engineered data...")
-    train_features.to_csv(args.output_train, index=False)
+    # save training split
+    train_dir = Path(args.train_dir)
+    train_dir.mkdir(parents=True, exist_ok=True)
+    X_train.to_csv(train_dir / "X_train.csv", index=False)
+    y_train.to_csv(train_dir / "y_train.csv", index=False)
+    print(f"Training split saved to: {train_dir/'X_train.csv'} and {train_dir/'y_train.csv'}")
+
+    # reconstruct and save the featurized train file (X_train + y_train)
+    train_df = X_train.copy()
+    train_df['Survived'] = y_train
+    train_df.to_csv(args.output_train, index=False)
+
+    # 4) Featurize test set and save it
+    print("Applying feature engineering to test data...")
+    test_features = fc.compute(test)
     test_features.to_csv(args.output_test, index=False)
 
     print(f"Train features saved to: {args.output_train}")
     print(f"Test features saved to: {args.output_test}")
-    print(f"Final train shape: {train_features.shape}, test shape: {test_features.shape}")
+    print(f"Final train shape: {train_df.shape}, test shape: {test_features.shape}")
 
+    # 5) Build & fit transformers on X_train only using TransformersManager
     print("Building transformers on training data only...")
-    train_features_for_fit = train_features.drop(columns=['Survived'], errors='ignore')
-    num_cat_trans, bins = build_feature_pipelines()
-    fit_and_save_transformers(train_features_for_fit, num_cat_trans, bins, output_dir=args.transformer_dir)
+    tm = TransformersManager()
+    num_cat_trans, bins = tm.build()
+    tm.fit_and_save(X_train, num_cat_trans, bins, output_dir=args.transformer_dir)
+    print("Transformers saved to:", args.transformer_dir)
+
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+#python scripts/featurize.py --train_path data/titanic/processed/train_processed.csv --test_path data/titanic/processed/test_processed.csv --output_train data/featurized/train_features.csv --output_test data/featurized/test_features.csv --transformer_dir data/transformers --eval_dir data/eval --train_dir data/train --test_size 0.2
