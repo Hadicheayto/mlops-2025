@@ -1,6 +1,8 @@
 
 # train.py
 import argparse
+
+from src.my_package.models.xgboost_model import XGBoostModel
 from src.my_package.models.random_forest_model import RandomForestModel
 import pandas as pd
 from pathlib import Path
@@ -10,6 +12,7 @@ import sys
 # ----------------------------
 # Helper functions
 # ----------------------------
+
 def load_train_split(train_dir):
     X_train = pd.read_csv(Path(train_dir) / "X_train.csv")
     y_train = pd.read_csv(Path(train_dir) / "y_train.csv").squeeze()
@@ -46,7 +49,7 @@ def main():
     num_cat_trans, bins_trans = load_transformers(args.transformer_dir)
 
     print("Training model...")
-    model = RandomForestModel(num_cat_trans, bins_trans, args.output_model)
+    model = XGBoostModel(num_cat_trans, bins_trans, args.output_model)
     model.train(X_train, y_train)
 
 
