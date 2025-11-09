@@ -15,6 +15,94 @@ to 0.76 and 0.72, respectively.
 
 In summary, both models perform quite well, but XGBoost consistently delivers better accuracy, precision, recall, and F1-scores.
 
+random forest:
+
+{
+  "accuracy": 0.776536312849162,
+  "classification_report": {
+    "0": {
+      "precision": 0.8070175438596491,
+      "recall": 0.8363636363636363,
+      "f1-score": 0.8214285714285714,
+      "support": 110.0
+    },
+    "1": {
+      "precision": 0.7230769230769231,
+      "recall": 0.6811594202898551,
+      "f1-score": 0.7014925373134329,
+      "support": 69.0
+    },
+    "accuracy": 0.776536312849162,
+    "macro avg": {
+      "precision": 0.7650472334682861,
+      "recall": 0.7587615283267457,
+      "f1-score": 0.7614605543710021,
+      "support": 179.0
+    },
+    "weighted avg": {
+      "precision": 0.7746605447869782,
+      "recall": 0.776536312849162,
+      "f1-score": 0.7751962454288811,
+      "support": 179.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      92,
+      18
+    ],
+    [
+      22,
+      47
+    ]
+  ],
+  "n_samples": 179
+}
+
+XGBOOST:
+
+{
+  "accuracy": 0.8044692737430168,
+  "classification_report": {
+    "0": {
+      "precision": 0.831858407079646,
+      "recall": 0.8545454545454545,
+      "f1-score": 0.8430493273542601,
+      "support": 110.0
+    },
+    "1": {
+      "precision": 0.7575757575757576,
+      "recall": 0.7246376811594203,
+      "f1-score": 0.7407407407407407,
+      "support": 69.0
+    },
+    "accuracy": 0.8044692737430168,
+    "macro avg": {
+      "precision": 0.7947170823277018,
+      "recall": 0.7895915678524374,
+      "f1-score": 0.7918950340475004,
+      "support": 179.0
+    },
+    "weighted avg": {
+      "precision": 0.8032243131368064,
+      "recall": 0.8044692737430168,
+      "f1-score": 0.8036119392183224,
+      "support": 179.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      94,
+      16
+    ],
+    [
+      19,
+      50
+    ]
+  ],
+  "n_samples": 179
+}
+
 
 
 6- What can we still improve?
