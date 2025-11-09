@@ -1,0 +1,22 @@
+
+4- Using classes: Random forest VS XGBoost:
+-------------------------------------------
+I trained and evaluated two different models on the Titanic dataset: a Random Forest Classifier and an XGBoost Classifier. Both 
+models were tested on the same evaluation set to ensure a fair comparison. Below is the detailed analysis of their performance.
+
+The Random Forest model achieved an accuracy of 77.65%, while the XGBoost model reached a higher accuracy of 80.45%. This
+already shows that XGBoost performs better overall in predicting survival outcomes.
+
+For Class 0 (non-survivors), Random Forest obtained a precision of 0.81 and a recall of 0.84, whereas XGBoost slightly improved 
+these scores to 0.83 precision and 0.85 recall.
+
+For Class 1 (survivors), Random Forest had a precision of 0.72 and recall of 0.68, while XGBoost increased both values
+to 0.76 and 0.72, respectively.
+
+In summary, both models perform quite well, but XGBoost consistently delivers better accuracy, precision, recall, and F1-scores.
+
+
+
+6- What can we still improve?
+------------------------------
+Make an automation that allow to change from 1 model to another model without changing in the train script.
